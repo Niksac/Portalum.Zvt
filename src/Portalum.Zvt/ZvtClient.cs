@@ -440,7 +440,6 @@ namespace Portalum.Zvt
 
                 if (registrationConfig.ReportMenuSelectionWithGraphicDisplaySupport)
                 {
-                    Console.WriteLine("ReportMenuSelectionWithGraphicDisplaySupport is set to true, adding 06D0 to permitted commands.");
                     permittedCommands.Add(0x0A);
                     permittedCommands.Add(0x02);
                     permittedCommands.Add(0x06);
