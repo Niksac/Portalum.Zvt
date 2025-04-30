@@ -60,27 +60,48 @@ namespace Portalum.Zvt.Parsers
             var id = data[0];
             //var timeout = data[1];
 
-            //Detect TLV Text
-            if (id == 0xFF)
+            string message = this.TryParseTlvMessage(data);
+            if (!string.IsNullOrEmpty(message))
             {
-                if (data.Length <= 3)
-                {
-                    this._logger.LogError($"{nameof(GetMessage)} - Invalid tlv data length");
-                    return null;
-                }
-
-                var data1 = data.Slice(2);
-                this._bmpParser.Parse(data1, null);
-                return this._tlvTextContent.ToString();
+                return message;
             }
 
-            var message = this._intermediateStatusRepository.GetMessage(id);
-            if (string.IsNullOrEmpty(message))
+            message = this._intermediateStatusRepository.GetMessage(id);
+            if (!string.IsNullOrEmpty(message))
             {
-                this._logger.LogError($"{nameof(GetMessage)} - No message available for {id:X2}");
+                return message;
             }
 
-            return message;
+            this._logger.LogError($"{nameof(GetMessage)} - No message available for ID {id:X2} (neither TLV nor repository).");
+            return null;
+        }
+
+        /// <summary>
+        /// TryParseTlvMessage
+        /// </summary>
+        private string TryParseTlvMessage(Span<byte> data)
+        {
+            if (data.Length <= 3)
+            {
+                return null; // Not enough data for TLV
+            }
+
+            var tlvData = data.Slice(2); 
+
+            if (!this._bmpParser.Parse(tlvData, null))
+            {
+                 this._logger.LogWarning($"{nameof(TryParseTlvMessage)} - Failed to parse potential TLV data.");
+                 return null;
+            }
+
+            var tlvMessage = this._tlvTextContent.ToString();
+            if (string.IsNullOrEmpty(tlvMessage))
+            {
+                this._logger.LogWarning($"{nameof(TryParseTlvMessage)} - Potential TLV data parsed but content is empty.");
+                return null;
+            }
+
+            return tlvMessage;
         }
 
         private bool CleanupTextBuffer(byte[] data, IResponse response)
