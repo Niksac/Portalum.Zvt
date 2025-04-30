@@ -424,20 +424,35 @@ namespace Portalum.Zvt
 
             if (registrationConfig.ActivateTlvSupport)
             {
+                var tlvPackage = new List<byte>();
+
                 //Add empty TLV Container
                 //package.Add(0x06); //TLV
                 //package.Add(0x00); //TLV-Length
 
-                //Add TLV Container permit 06D3 (Card complete)
-                package.Add(0x06); //TLV Indicator
-                package.Add(0x06); //TLV Legnth
+                // Add TLV Container permit 06D3 (Print text block)
+                tlvPackage.Add(0x26); // List of permitted ZVT-Commands
+                var permittedCommands = new List<byte>();
+                permittedCommands.Add(0x0A); //ZVT-command
+                permittedCommands.Add(0x02); //length
+                permittedCommands.Add(0x06); //06 first hex of print text block
+                permittedCommands.Add(0xD3); //D3 second hex of print text block
 
-                package.Add(0x26); //List of permitted ZVT-Commands
-                package.Add(0x04); //length
-                package.Add(0x0A); //ZVT-command
-                package.Add(0x02); //length
-                package.Add(0x06); //06 first hex of print text block
-                package.Add(0xD3); //D3 second hex of print text block
+                if (registrationConfig.ReportMenuSelectionWithGraphicDisplaySupport)
+                {
+                    Console.WriteLine("ReportMenuSelectionWithGraphicDisplaySupport is set to true, adding 06D0 to permitted commands.");
+                    permittedCommands.Add(0x0A);
+                    permittedCommands.Add(0x02);
+                    permittedCommands.Add(0x06);
+                    permittedCommands.Add(0xD0);
+                }
+
+                tlvPackage.Add((byte)permittedCommands.Count);
+                tlvPackage.AddRange(permittedCommands);
+
+                package.Add(0x06); // TLV Indicator
+                package.Add((byte)tlvPackage.Count); // TLV Length
+                package.AddRange(tlvPackage);
 
                 //TLV TAG
                 //10 - Number of columns and number of lines of the merchant-display

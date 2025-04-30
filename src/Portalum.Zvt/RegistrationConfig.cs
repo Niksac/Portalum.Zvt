@@ -58,6 +58,13 @@ namespace Portalum.Zvt
         public bool TextAtDisplayInCapitalLettersAtThePaymentTerminal = false;
 
         /// <summary>
+        /// Report support for 06 D0 (Menu selection with graphic display)
+        /// Needed for some terminals like Clover to enable on-screen signatures.
+        /// WARNING: 06 D0 is not actually implemented in this library
+        /// </summary>
+        public bool ReportMenuSelectionWithGraphicDisplaySupport = false;
+
+        /// <summary>
         /// Activate TLV Support
         /// </summary>
         public bool ActivateTlvSupport = true;
